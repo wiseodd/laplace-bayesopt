@@ -2,7 +2,12 @@
 
 ## Installation
 
-`pip install git+https://git@github.com/wiseodd/laplace-bayesopt`
+Install PyTorch version 1.13, see <https://pytorch.org/get-started/previous-versions>.
+
+```
+pip install git+https://git@github.com/aleximmer/laplace
+pip install git+https://git@github.com/wiseodd/laplace-bayesopt
+```
 
 
 ## Usage
