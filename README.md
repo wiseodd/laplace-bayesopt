@@ -2,7 +2,7 @@
 
 ## Installation
 
-Install PyTorch version 1.13, see <https://pytorch.org/get-started/previous-versions>.
+Install PyTorch first, then:
 
 ```
 pip install git+https://git@github.com/aleximmer/laplace
