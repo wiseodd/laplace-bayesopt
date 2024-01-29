@@ -47,10 +47,10 @@ Check out a full BoTorch example in `examples/botorch/experiments.py`.
 ## Citation
 
 ```
-@article{kristiadi2023promises,
-  title={Promises and Pitfalls of the Linearized Laplace in Bayesian Optimization},
+@inproceedings{kristiadi2023promises,
+  title={Promises and Pitfalls of the Linearized {L}aplace in {B}ayesian Optimization},
   author={Kristiadi, Agustinus and Immer, Alexander and Eschenhagen, Runa and Fortuin, Vincent},
-  journal={arXiv preprint arXiv:2304.08309},
+  booktitle={AABI},
   year={2023}
 }
 ```
