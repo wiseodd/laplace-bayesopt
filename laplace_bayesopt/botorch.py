@@ -305,6 +305,7 @@ class LaplaceBoTorch(botorch_model.Model):
             net, self.likelihood,
             subset_of_weights=self.subset_of_weights,
             hessian_structure=self.hess_factorization,
+            backend=BackPackGGN,
             enable_backprop=True  # Important!
         )
         self.bnn.fit(train_loader)
