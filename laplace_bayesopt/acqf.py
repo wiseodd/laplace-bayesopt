@@ -25,8 +25,7 @@ class TSAcquisitionFunction(AnalyticAcquisitionFunction):
     def __init__(self, model, posterior_transform=None, maximize=True, random_state=123):
         super().__init__(model, posterior_transform)
         self.maximize = maximize
-        self.device = model.device
-        self.generator = torch.Generator(device=self.device).manual_seed(random_state)
+        self.random_state = random_state
 
     def forward(self, x):
         """
@@ -41,7 +40,8 @@ class TSAcquisitionFunction(AnalyticAcquisitionFunction):
             Shape (n,)
         """
         mean, std = self._mean_and_sigma(x)
-        eps = torch.randn(*std.shape, device=self.device, generator=self.generator)
+        generator = torch.Generator(device=x.device).manual_seed(self.random_state)
+        eps = torch.randn(*std.shape, device=x.device, generator=generator)
         f_sample = mean + std * eps
 
         # BoTorch assumes acqf to be maximization
