@@ -8,7 +8,7 @@ import torch.utils.data as data_utils
 import botorch.models.model as botorch_model
 from botorch.posteriors.gpytorch import GPyTorchPosterior
 from laplace import Laplace
-from laplace.curvature import BackPackGGN
+from laplace.curvature import BackPackGGN, CurvatureInterface
 from laplace.marglik_training import marglik_training
 from typing import *
 import math
@@ -95,6 +95,7 @@ class LaplaceBoTorch(botorch_model.Model):
         n_epochs: int = 1000,
         lr: float = 1e-1,
         wd: float = 1e-3,
+        backend: CurvatureInterface = BackPackGGN,
         device: str ='cpu'
     ):
 
@@ -117,6 +118,7 @@ class LaplaceBoTorch(botorch_model.Model):
         self.n_epochs = n_epochs
         self.lr = lr
         self.wd = wd
+        self.backend = backend
         self.get_net = get_net
         self.bnn = bnn
 
@@ -270,7 +272,7 @@ class LaplaceBoTorch(botorch_model.Model):
                 # Ensure that the base net is re-initialized
                 self.get_net(), train_loader, likelihood=self.likelihood,
                 hessian_structure=self.hess_factorization,
-                n_epochs=self.n_epochs, backend=BackPackGGN,
+                n_epochs=self.n_epochs, backend=self.backend,
                 optimizer_kwargs={'lr': self.lr},
                 scheduler_cls=optim.lr_scheduler.CosineAnnealingLR,
                 scheduler_kwargs={'T_max': self.n_epochs*len(train_loader)},
@@ -305,7 +307,7 @@ class LaplaceBoTorch(botorch_model.Model):
             net, self.likelihood,
             subset_of_weights=self.subset_of_weights,
             hessian_structure=self.hess_factorization,
-            backend=BackPackGGN,
+            backend=self.backend,
             enable_backprop=True  # Important!
         )
         self.bnn.fit(train_loader)
