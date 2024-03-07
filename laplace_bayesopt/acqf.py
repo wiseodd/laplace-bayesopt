@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from botorch.acquisition.analytic import AnalyticAcquisitionFunction
 
 
-class TSAcquisitionFunction(AnalyticAcquisitionFunction):
+class ThompsonSampling(AnalyticAcquisitionFunction):
     """
     Thompson sampling acquisition function. While it uses a posterior sample, it is an analytic one.
     I.e. once we pick a sample of the posterior f_s ~ p(f | D), f_s is a deterministic function over x.
@@ -49,7 +49,7 @@ class TSAcquisitionFunction(AnalyticAcquisitionFunction):
         return f_sample if self.maximize else -f_sample
 
 
-def thompson_sampling_with_cand(model, x_cand, maximization=True, batch_size=128, random_state=123):
+def discrete_thompson_sampling(model, x_cand, maximization=True, batch_size=128, random_state=123):
     """
     Thompson sampling for BoTorch on discrete candidates from the input space.
     Supports single objective only.
@@ -75,6 +75,9 @@ def thompson_sampling_with_cand(model, x_cand, maximization=True, batch_size=128
     --------
     x_best: torch.Tensor
         Shape (dim,). The argmax/argmin of the posterior samples.
+
+    fx_best: float
+        The acquisition function value of x_best.
     """
     dataloader = DataLoader(TensorDataset(x_cand), batch_size=batch_size)
     generator = torch.Generator(device=x_cand.device).manual_seed(random_state)
@@ -101,4 +104,4 @@ def thompson_sampling_with_cand(model, x_cand, maximization=True, batch_size=128
                     best_fx = curr_min
                     best_x = x_cand[torch.argmin(f_sample)]
 
-    return best_x
+    return best_x, best_fx
