@@ -13,7 +13,7 @@ from botorch.models.transforms.input import InputTransform
 from botorch.models.transforms.outcome import OutcomeTransform
 
 from laplace import Laplace
-from laplace.curvature import BackPackGGN, CurvatureInterface
+from laplace.curvature import CurvlinopsGGN, CurvatureInterface
 from laplace.marglik_training import marglik_training
 
 from typing import *
@@ -31,7 +31,6 @@ class LaplaceBoTorch(botorch_model.Model):
     -----
     get_net: function None -> nn.Module
         Function that doesn't take any args and return a PyTorch model.
-        Prefer torch.nn.Sequential model due to BackPACK dependency.
         Example usage: `get_net=lambda: nn.Sequential(...)`.
 
     train_X : torch.Tensor
@@ -109,7 +108,7 @@ class LaplaceBoTorch(botorch_model.Model):
         n_epochs: int = 1000,
         lr: float = 1e-1,
         wd: float = 1e-3,
-        backend: CurvatureInterface = BackPackGGN,
+        backend: CurvatureInterface = CurvlinopsGGN,
         device: str ='cpu'
     ):
         super().__init__()
