@@ -22,7 +22,10 @@ class ThompsonSampling(AnalyticAcquisitionFunction):
         The random state of the sampling f_s ~ p(f | D). This is to ensure that for any given x,
         the sample from p(f(x) | D) comes from the same sample posterior sample f_s ~ p(f | D).
     """
-    def __init__(self, model, posterior_transform=None, maximize=True, random_state=123):
+
+    def __init__(
+        self, model, posterior_transform=None, maximize=True, random_state=123
+    ):
         super().__init__(model, posterior_transform)
         self.maximize = maximize
         self.random_state = random_state
@@ -40,6 +43,12 @@ class ThompsonSampling(AnalyticAcquisitionFunction):
             Shape (n,)
         """
         mean, std = self._mean_and_sigma(x)
+
+        if len(mean.shape) == 0:
+            mean = mean.unsqueeze(0)
+        if len(std.shape) == 0:
+            std = std.unsqueeze(0)
+
         generator = torch.Generator(device=x.device).manual_seed(self.random_state)
         eps = torch.randn(*std.shape, device=x.device, generator=generator)
         f_sample = mean + std * eps
@@ -49,7 +58,9 @@ class ThompsonSampling(AnalyticAcquisitionFunction):
         return f_sample if self.maximize else -f_sample
 
 
-def discrete_thompson_sampling(model, x_cand, maximization=True, batch_size=128, random_state=123):
+def discrete_thompson_sampling(
+    model, x_cand, maximization=True, batch_size=128, random_state=123
+):
     """
     Thompson sampling for BoTorch on discrete candidates from the input space.
     Supports single objective only.
