@@ -1,3 +1,4 @@
+from botorch.acquisition.objective import PosteriorTransform
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 from botorch.acquisition.analytic import AnalyticAcquisitionFunction
@@ -24,13 +25,17 @@ class ThompsonSampling(AnalyticAcquisitionFunction):
     """
 
     def __init__(
-        self, model, posterior_transform=None, maximize=True, random_state=123
+        self,
+        model: torch.nn.Module,
+        posterior_transform: PosteriorTransform | None = None,
+        maximize: bool = True,
+        random_state: int = 123,
     ):
         super().__init__(model, posterior_transform)
         self.maximize = maximize
         self.random_state = random_state
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor):
         """
         Parameters:
         -----------
@@ -59,7 +64,11 @@ class ThompsonSampling(AnalyticAcquisitionFunction):
 
 
 def discrete_thompson_sampling(
-    model, x_cand, maximization=True, batch_size=128, random_state=123
+    model: torch.nn.Module,
+    x_cand: torch.Tensor,
+    maximization: bool = True,
+    batch_size: int = 128,
+    random_state: int = 123,
 ):
     """
     Thompson sampling for BoTorch on discrete candidates from the input space.

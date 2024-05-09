@@ -1,6 +1,7 @@
 from __future__ import annotations
 import warnings
-warnings.filterwarnings('ignore')
+
+warnings.filterwarnings("ignore")
 import torch
 from torch import nn, optim
 import torch.utils.data as data_utils
@@ -89,6 +90,7 @@ class LaplaceBoTorch(botorch_model.Model):
     device : {'cpu', 'cuda'}, default='cpu'
         Which device to run the experiment on.
     """
+
     def __init__(
         self,
         get_net: Callable[[], nn.Module],
@@ -97,11 +99,11 @@ class LaplaceBoTorch(botorch_model.Model):
         input_transform: Optional[InputTransform] = None,
         outcome_transform: Optional[OutcomeTransform] = None,
         bnn: Laplace = None,
-        likelihood: str = 'regression',
-        noise_var: Optional[float] =  None,
+        likelihood: str = "regression",
+        noise_var: Optional[float] = None,
         last_layer: bool = False,
-        hess_factorization: str = 'kron',
-        marglik_mode: str = 'posthoc',
+        hess_factorization: str = "kron",
+        marglik_mode: str = "posthoc",
         posthoc_marglik_iters: int = 100,
         online_marglik_freq: int = 50,
         batch_size: int = 10,
@@ -109,7 +111,7 @@ class LaplaceBoTorch(botorch_model.Model):
         lr: float = 1e-1,
         wd: float = 1e-3,
         backend: CurvatureInterface = CurvlinopsGGN,
-        device: str ='cpu'
+        device: str = "cpu",
     ):
         super().__init__()
 
@@ -129,17 +131,17 @@ class LaplaceBoTorch(botorch_model.Model):
         else:
             self.train_Y = train_Y
 
-        assert likelihood in ['regression']  # For now
+        assert likelihood in ["regression"]  # For now
         self.likelihood = likelihood
         self.batch_size = batch_size
         self.last_layer = last_layer
-        self.subset_of_weights = 'last_layer' if last_layer else 'all'
+        self.subset_of_weights = "last_layer" if last_layer else "all"
         self.hess_factorization = hess_factorization
         self.posthoc_marglik_iters = posthoc_marglik_iters
         self.online_marglik_freq = online_marglik_freq
-        assert device in ['cpu', 'cuda']
+        assert device in ["cpu", "cuda"]
         self.device = device
-        assert marglik_mode in ['posthoc', 'online']
+        assert marglik_mode in ["posthoc", "online"]
         self.marglik_mode = marglik_mode
         self.n_epochs = n_epochs
         self.lr = lr
@@ -150,15 +152,14 @@ class LaplaceBoTorch(botorch_model.Model):
         self.bnn = bnn
 
         if type(noise_var) != float and noise_var is not None:
-            raise ValueError('Noise variance must be float >= 0. or None')
+            raise ValueError("Noise variance must be float >= 0. or None")
         if type(noise_var) == float and noise_var < 0:
-            raise ValueError('Noise variance must be >= 0.')
+            raise ValueError("Noise variance must be >= 0.")
         self.noise_var = noise_var
 
         # Initialize Laplace
         if self.bnn is None:
             self._train_model(self._get_train_loader())
-
 
     def posterior(
         self,
@@ -174,17 +175,17 @@ class LaplaceBoTorch(botorch_model.Model):
         # Q is the num. of x's predicted jointly
         # D is the feature size
         # K is the output size, i.e. num of tasks
-        if hasattr(self, 'input_transform'):
+        if hasattr(self, "input_transform"):
             self.input_transform.eval()
             X = self.input_transform(X)
 
-        assert len(X.shape) == 2 or len(X.shape) == 3, 'X must be a 2- or 3-d tensor'
+        assert len(X.shape) == 2 or len(X.shape) == 3, "X must be a 2- or 3-d tensor"
         if len(X.shape) == 2:
             X = X.unsqueeze(1)
 
         # Transform to `(B*Q, D)`
         B, Q, D = X.shape
-        X = X.reshape(B*Q, D)
+        X = X.reshape(B * Q, D)
 
         # Posterior predictive distribution
         # mean_y is (B*Q, K); cov_y is (B*Q*K, B*Q*K)
@@ -192,13 +193,13 @@ class LaplaceBoTorch(botorch_model.Model):
 
         # Mean must be `(B, Q*K)`
         K = self.num_outputs
-        mean_y = mean_y.reshape(B, Q*K)
+        mean_y = mean_y.reshape(B, Q * K)
 
         # Cov must be `(B, Q*K, Q*K)`
-        cov_y += self.bnn.sigma_noise**2 * torch.eye(B*Q*K, device=self.device)
+        cov_y += self.bnn.sigma_noise**2 * torch.eye(B * Q * K, device=self.device)
         cov_y = cov_y.reshape(B, Q, K, B, Q, K)
-        cov_y = torch.einsum('bqkbrl->bqkrl', cov_y)  # (B, Q, K, Q, K)
-        cov_y = cov_y.reshape(B, Q*K, Q*K)
+        cov_y = torch.einsum("bqkbrl->bqkrl", cov_y)  # (B, Q, K, Q, K)
+        cov_y = cov_y.reshape(B, Q * K, Q * K)
 
         dist = gdists.MultivariateNormal(mean_y, covariance_matrix=cov_y)
         post_pred = GPyTorchPosterior(dist)
@@ -208,8 +209,9 @@ class LaplaceBoTorch(botorch_model.Model):
 
         return post_pred
 
-
-    def condition_on_observations(self, new_X: torch.Tensor, new_Y: torch.Tensor, **kwargs: Any) -> LaplaceBoTorch:
+    def condition_on_observations(
+        self, new_X: torch.Tensor, new_Y: torch.Tensor, **kwargs: Any
+    ) -> LaplaceBoTorch:
         # Append new observation to the current untrasformed data
         train_X = torch.cat([self.orig_train_X, new_X], dim=0)
         train_Y = torch.cat([self.orig_train_Y, new_Y], dim=0)
@@ -219,8 +221,8 @@ class LaplaceBoTorch(botorch_model.Model):
             get_net=self.get_net,
             train_X=train_X,  # Important!
             train_Y=train_Y,  # Important!
-            input_transform=getattr(self, 'input_transform', None),
-            outcome_transform=getattr(self, 'outcome_transform', None),
+            input_transform=getattr(self, "input_transform", None),
+            outcome_transform=getattr(self, "outcome_transform", None),
             bnn=None,  # Important! `None`` so that Laplace is retrained
             likelihood=self.likelihood,
             noise_var=self.noise_var,
@@ -234,7 +236,7 @@ class LaplaceBoTorch(botorch_model.Model):
             lr=self.lr,
             wd=self.wd,
             backend=self.backend,
-            device=self.device
+            device=self.device,
         )
 
     def _get_prediction(self, test_X: torch.Tensor, joint=True, use_test_loader=False):
@@ -263,14 +265,14 @@ class LaplaceBoTorch(botorch_model.Model):
             if joint is True. Otherwise, `(batch_shape, num_tasks, num_tasks)`.
         """
         if self.bnn is None:
-            raise Exception('Train your model first before making prediction!')
+            raise Exception("Train your model first before making prediction!")
 
         if not use_test_loader:
             mean_y, cov_y = self.bnn(test_X.to(self.device), joint=joint)
         else:
             test_loader = data_utils.DataLoader(
                 data_utils.TensorDataset(test_X, torch.zeros_like(test_X)),
-                batch_size=256
+                batch_size=256,
             )
 
             mean_y, cov_y = [], []
@@ -286,30 +288,31 @@ class LaplaceBoTorch(botorch_model.Model):
 
         return mean_y, cov_y
 
-
     @property
     def num_outputs(self) -> int:
         """The number of outputs of the model."""
         return self.train_Y.shape[-1]
 
-
     def _train_model(self, train_loader):
         del self.bnn
 
-        if self.marglik_mode == 'posthoc':
+        if self.marglik_mode == "posthoc":
             self._posthoc_laplace(train_loader)
         else:
             # Online
             la, model, _, _ = marglik_training(
                 # Ensure that the base net is re-initialized
-                self.net, train_loader, likelihood=self.likelihood,
+                self.net,
+                train_loader,
+                likelihood=self.likelihood,
                 hessian_structure=self.hess_factorization,
-                n_epochs=self.n_epochs, backend=self.backend,
-                optimizer_kwargs={'lr': self.lr},
+                n_epochs=self.n_epochs,
+                backend=self.backend,
+                optimizer_kwargs={"lr": self.lr},
                 scheduler_cls=optim.lr_scheduler.CosineAnnealingLR,
-                scheduler_kwargs={'T_max': self.n_epochs*len(train_loader)},
+                scheduler_kwargs={"T_max": self.n_epochs * len(train_loader)},
                 marglik_frequency=self.online_marglik_freq,
-                enable_backprop=True  # Important!
+                enable_backprop=True,  # Important!
             )
             self.bnn = la
 
@@ -317,11 +320,14 @@ class LaplaceBoTorch(botorch_model.Model):
         if self.noise_var is not None:
             self.bnn.sigma_noise = math.sqrt(self.noise_var)
 
-
     def _posthoc_laplace(self, train_loader):
         optimizer = optim.Adam(self.net.parameters(), lr=self.lr, weight_decay=self.wd)
-        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, self.n_epochs*len(train_loader))
-        loss_func = nn.MSELoss() if self.likelihood == 'regression' else nn.CrossEntropyLoss()
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, self.n_epochs * len(train_loader)
+        )
+        loss_func = (
+            nn.MSELoss() if self.likelihood == "regression" else nn.CrossEntropyLoss()
+        )
 
         for _ in range(self.n_epochs):
             for x, y in train_loader:
@@ -335,29 +341,35 @@ class LaplaceBoTorch(botorch_model.Model):
 
         self.net.eval()
         self.bnn = Laplace(
-            self.net, self.likelihood,
+            self.net,
+            self.likelihood,
             subset_of_weights=self.subset_of_weights,
             hessian_structure=self.hess_factorization,
             backend=self.backend,
-            enable_backprop=True  # Important!
+            enable_backprop=True,  # Important!
         )
         self.bnn.fit(train_loader)
 
-        if self.likelihood == 'classification':
+        if self.likelihood == "classification":
             self.bnn.optimize_prior_precision(n_steps=self.posthoc_marglik_iters)
         else:
             # For regression, tune prior precision and observation noise
-            log_prior, log_sigma = torch.ones(1, requires_grad=True), torch.ones(1, requires_grad=True)
+            log_prior, log_sigma = (
+                torch.ones(1, requires_grad=True),
+                torch.ones(1, requires_grad=True),
+            )
             hyper_optimizer = torch.optim.Adam([log_prior, log_sigma], lr=1e-1)
             for _ in range(self.posthoc_marglik_iters):
                 hyper_optimizer.zero_grad()
-                neg_marglik = -self.bnn.log_marginal_likelihood(log_prior.exp(), log_sigma.exp())
+                neg_marglik = -self.bnn.log_marginal_likelihood(
+                    log_prior.exp(), log_sigma.exp()
+                )
                 neg_marglik.backward()
                 hyper_optimizer.step()
-
 
     def _get_train_loader(self):
         return data_utils.DataLoader(
             data_utils.TensorDataset(self.train_X, self.train_Y),
-            batch_size=self.batch_size, shuffle=True
+            batch_size=self.batch_size,
+            shuffle=True,
         )
