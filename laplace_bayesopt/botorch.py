@@ -89,6 +89,10 @@ class LaplaceBoTorch(botorch_model.Model):
 
     device : {'cpu', 'cuda'}, default='cpu'
         Which device to run the experiment on.
+
+    enable_backprop: bool, default=True
+        Whether to enable backprop through the functional posterior. Set this to false
+        if the BO problem is discrete.
     """
 
     def __init__(
@@ -112,6 +116,7 @@ class LaplaceBoTorch(botorch_model.Model):
         wd: float = 1e-3,
         backend: CurvatureInterface = CurvlinopsGGN,
         device: str = "cpu",
+        enable_backprop: bool = True,
     ):
         super().__init__()
 
@@ -150,6 +155,7 @@ class LaplaceBoTorch(botorch_model.Model):
         self.get_net = get_net
         self.net = get_net()  # Freshly initialized
         self.bnn = bnn
+        self.enable_backprop = enable_backprop
 
         if type(noise_var) != float and noise_var is not None:
             raise ValueError("Noise variance must be float >= 0. or None")
@@ -312,7 +318,7 @@ class LaplaceBoTorch(botorch_model.Model):
                 scheduler_cls=optim.lr_scheduler.CosineAnnealingLR,
                 scheduler_kwargs={"T_max": self.n_epochs * len(train_loader)},
                 marglik_frequency=self.online_marglik_freq,
-                enable_backprop=True,  # Important!
+                enable_backprop=self.enable_backprop,  # Important!
             )
             self.bnn = la
 
@@ -346,7 +352,7 @@ class LaplaceBoTorch(botorch_model.Model):
             subset_of_weights=self.subset_of_weights,
             hessian_structure=self.hess_factorization,
             backend=self.backend,
-            enable_backprop=True,  # Important!
+            enable_backprop=self.enable_backprop,  # Important!
         )
         self.bnn.fit(train_loader)
 
