@@ -15,6 +15,7 @@ def net_singletask():
     )
     return net
 
+
 @pytest.fixture
 def net_multitask():
     net = torch.nn.Sequential(
@@ -46,8 +47,8 @@ def test_posterior_singletask(net_singletask, reg_data_singletask):
     B, Q, D, K = 15, 4, train_X.shape[-1], 1
     post = model.posterior(torch.randn(B, Q, D))
 
-    assert post.mean.shape == (B, Q*K, 1)  # Quirk of GPyTorch
-    assert post.covariance_matrix.shape == (B, Q*K, Q*K)
+    assert post.mean.shape == (B, Q * K, 1)  # Quirk of GPyTorch
+    assert post.covariance_matrix.shape == (B, Q * K, Q * K)
 
 
 def test_posterior_multitask(net_multitask, reg_data_multitask):
@@ -59,8 +60,8 @@ def test_posterior_multitask(net_multitask, reg_data_multitask):
     B, Q, D, K = 15, 4, train_X.shape[-1], train_Y.shape[-1]
     post = model.posterior(torch.randn(B, Q, D))
 
-    assert post.mean.shape == (B, Q*K, 1)  # Quirk of GPyTorch
-    assert post.covariance_matrix.shape == (B, Q*K, Q*K)
+    assert post.mean.shape == (B, Q * K, 1)  # Quirk of GPyTorch
+    assert post.covariance_matrix.shape == (B, Q * K, Q * K)
 
 
 def test_condition_on_observations(net_multitask, reg_data_multitask):
@@ -72,8 +73,8 @@ def test_condition_on_observations(net_multitask, reg_data_multitask):
     B, Q, D, K = 15, 4, train_X.shape[-1], train_Y.shape[-1]
     model_new = model.condition_on_observations(torch.randn(B, D), torch.randn(B, K))
 
-    assert model_new.train_X.shape == (train_X.shape[0]+B, D)
-    assert model_new.train_Y.shape == (train_Y.shape[0]+B, K)
+    assert model_new.train_X.shape == (train_X.shape[0] + B, D)
+    assert model_new.train_Y.shape == (train_Y.shape[0] + B, K)
 
 
 def test_get_prediction(net_multitask, reg_data_multitask):
@@ -84,19 +85,22 @@ def test_get_prediction(net_multitask, reg_data_multitask):
     # Batch, joint-dim, feature-dim, num_task
     B, Q, D, K = 15, 4, train_X.shape[-1], train_Y.shape[-1]
 
-    Y_mean, Y_var = model.get_prediction(torch.randn(B, D), joint=False)
+    Y_mean, Y_var = model._get_prediction(torch.randn(B, D), joint=False)
     assert Y_mean.shape == (B, K)
     assert Y_var.shape == (B, K, K)
 
-    Y_mean, Y_var = model.get_prediction(torch.randn(B, D), joint=False, use_test_loader=True)
+    Y_mean, Y_var = model._get_prediction(
+        torch.randn(B, D), joint=False, use_test_loader=True
+    )
     assert Y_mean.shape == (B, K)
     assert Y_var.shape == (B, K, K)
 
-    Y_mean, Y_var = model.get_prediction(torch.randn(B, D), joint=True)
-    assert Y_mean.shape == (B*K,)
-    assert Y_var.shape == (B*K, B*K)
+    Y_mean, Y_var = model._get_prediction(torch.randn(B, D), joint=True)
+    assert Y_mean.shape == (B * K,)
+    assert Y_var.shape == (B * K, B * K)
 
-    Y_mean, Y_var = model.get_prediction(torch.randn(B, D), joint=True, use_test_loader=True)
-    assert Y_mean.shape == (B*K,)
-    assert Y_var.shape == (B*K, B*K)
-
+    Y_mean, Y_var = model._get_prediction(
+        torch.randn(B, D), joint=True, use_test_loader=True
+    )
+    assert Y_mean.shape == (B * K,)
+    assert Y_var.shape == (B * K, B * K)

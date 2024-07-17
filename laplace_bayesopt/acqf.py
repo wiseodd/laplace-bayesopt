@@ -4,10 +4,15 @@ from torch.utils.data import DataLoader, TensorDataset
 from botorch.acquisition.analytic import AnalyticAcquisitionFunction
 
 
-class ThompsonSampling(AnalyticAcquisitionFunction):
+class IndependentThompsonSampling(AnalyticAcquisitionFunction):
     """
-    Thompson sampling acquisition function. While it uses a posterior sample, it is an analytic one.
+    While it uses a posterior sample, it is an analytic one.
     I.e. once we pick a sample of the posterior f_s ~ p(f | D), f_s is a deterministic function over x.
+    Note that, for the computational tractability, we sample from the diagonal of the
+    GP posterior, i.e. sample f(x) ~ N(mu(x), sigma^2(x)) independently for each x.
+    This ignores e.g. the smoothness of the kernel, but still a valid acquisition function
+    nonetheless. It's akin to the posterior-mean acq. func. but with noise coming from
+    the posterior variance.
 
     Parameters:
     -----------
@@ -63,7 +68,7 @@ class ThompsonSampling(AnalyticAcquisitionFunction):
         return f_sample if self.maximize else -f_sample
 
 
-def discrete_thompson_sampling(
+def discrete_independent_thompson_sampling(
     model: torch.nn.Module,
     x_cand: torch.Tensor,
     maximization: bool = True,
@@ -72,7 +77,11 @@ def discrete_thompson_sampling(
 ):
     """
     Thompson sampling for BoTorch on discrete candidates from the input space.
-    Supports single objective only.
+    Supports single objective only. Note that, for the computational tractability, we
+    sample from the diagonal of the GP posterior, i.e. sample f(x) ~ N(mu(x), sigma^2(x))
+    independently for each x. This ignores e.g. the smoothness of the kernel, but
+    still a valid acquisition function nonetheless. It's akin to the posterior-mean
+    acq. func. but with noise coming from the posterior variance.
 
     Parameters:
     -----------
