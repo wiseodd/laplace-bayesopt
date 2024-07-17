@@ -10,7 +10,6 @@ dependencies = [
     "backpack-for-pytorch",
     "botorch",
     "gpytorch",
-    "laplace-torch @ git+https://github.com/aleximmer/laplace.git@0.2",
     "opt_einsum",
     "torch",
     "torchaudio",

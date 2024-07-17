@@ -5,6 +5,8 @@
 Install PyTorch first, then:
 
 ```
+pip install --upgrade pip wheel packaging
+pip install git+https://github.com/aleximmer/laplace.git@0.2
 pip install laplace-bayesopt
 ```
 
