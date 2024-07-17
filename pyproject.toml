@@ -1,0 +1,48 @@
+[project]
+name = "laplace-bayesopt"
+version = "0.1.2"
+description = "Bayesian optimization interface for the laplace-torch library"
+authors = [
+    {name = "Agustinus Kristiadi", email = "agustinus@kristia.de"},
+]
+dependencies = [
+    "asdfghjkl",
+    "backpack-for-pytorch",
+    "botorch",
+    "gpytorch",
+    "opt_einsum",
+    "torch",
+    "torchaudio",
+    "torchvision",
+]
+requires-python = ">=3.9"
+readme = "README.md"
+license = {text = "MIT"}
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+Homepage = "https://github.com/wiseodd/laplace-bayesopt"
+"Bug Tracker" = "https://github.com/wiseodd/laplace-bayesopt/issues"
+
+[project.optional-dependencies]
+tests = [
+    "coveralls",
+    "pytest",
+    "pytest-cov",
+    "scipy",
+]
+[build-system]
+requires = ["pdm-backend", "packaging"]
+build-backend = "pdm.backend"
+
+[tool.pdm]
+distribution = true
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = "tests"

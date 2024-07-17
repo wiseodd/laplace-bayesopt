@@ -1,10 +1,10 @@
+from __future__ import annotations
 import numpy as np
 import torch
 from torch import nn
 from torch import distributions as dists
 from torch.nn import functional as F
 import tqdm
-
 
 
 from botorch.test_functions import Branin
