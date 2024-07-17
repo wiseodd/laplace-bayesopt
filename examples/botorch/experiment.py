@@ -6,7 +6,6 @@ from torch.nn import functional as F
 import tqdm
 
 
-
 from botorch.test_functions import Branin
 from botorch.acquisition.analytic import ExpectedImprovement
 from botorch.optim.optimize import optimize_acqf
