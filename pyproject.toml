@@ -10,7 +10,7 @@ dependencies = [
     "backpack-for-pytorch",
     "botorch",
     "gpytorch",
-    "laplace-torch",
+    "laplace-torch @ git+https://github.com/aleximmer/laplace.git@0.2",
     "opt_einsum",
     "torch",
     "torchaudio",
@@ -38,7 +38,7 @@ tests = [
     "scipy",
 ]
 [build-system]
-requires = ["pdm-backend"]
+requires = ["pdm-backend", "packaging"]
 build-backend = "pdm.backend"
 
 [tool.pdm]

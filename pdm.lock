@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.2"
-content_hash = "sha256:613a9f90416217dce905e3c738c2d7d01b77333dbac4c075b4ce453aea4ec92e"
+content_hash = "sha256:be2bbc85f25c62007de4a7653acf5228434e3009b98772dda1eb1c533236ac47"
 
 [[package]]
 name = "asdfghjkl"
@@ -19,6 +19,18 @@ dependencies = [
 files = [
     {file = "asdfghjkl-0.1a2-py3-none-any.whl", hash = "sha256:5afd941765df8482e255ad7001ccf60ad61ae6ebc46266f27c803d5daa3a6ac4"},
     {file = "asdfghjkl-0.1a2.tar.gz", hash = "sha256:731bde1b4f19f2a370a9b284a06fd64bb897fb1beec2d8c5a8b7fa36b34e9f98"},
+]
+
+[[package]]
+name = "asdl"
+version = "0.1"
+requires_python = ">=3.7"
+git = "https://github.com/kazukiosawa/asdl"
+revision = "011a942b2698b9ec33b0c8c47c96bd49335e5d80"
+summary = "ASDL: Automatic Second-order Differentiation (for Fisher, Gradient covariance, Hessian, Jacobian, and Kernel) Library"
+groups = ["default"]
+dependencies = [
+    "torch>=1.13.0",
 ]
 
 [[package]]
@@ -68,6 +80,38 @@ marker = "platform_system == \"Windows\""
 files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
+]
+
+[[package]]
+name = "curvlinops-for-pytorch"
+version = "0.0.0"
+requires_python = ">=3.8"
+git = "https://github.com/f-dangel/curvlinops"
+revision = "84c2ce755c2c5325330e115a0d46f13ef15cfd2e"
+summary = ""
+groups = ["default"]
+dependencies = [
+    "backpack-for-pytorch<2.0.0,>=1.6.0",
+    "einconv",
+    "einops",
+    "scipy<2.0.0,>=1.7.1",
+    "torch>=2.0",
+    "tqdm<5.0.0,>=4.61.0",
+]
+
+[[package]]
+name = "einconv"
+version = "0.1.0"
+requires_python = ">=3.7"
+summary = "Convolutions as tensor contractions (einsums) for PyTorch"
+groups = ["default"]
+dependencies = [
+    "einops",
+    "torch",
+]
+files = [
+    {file = "einconv-0.1.0-py3-none-any.whl", hash = "sha256:3bca32d297ae502277dccbaa9ff190036fb9592074086d9762811a3dfc54b20c"},
+    {file = "einconv-0.1.0.tar.gz", hash = "sha256:6b103881b1268e43d581f285da4fa72b073c95f31b92575133bafed9929b6d98"},
 ]
 
 [[package]]
@@ -173,20 +217,39 @@ files = [
 
 [[package]]
 name = "laplace-torch"
-version = "0.1a2"
-requires_python = ">=3.8"
+version = "0.2"
+requires_python = ">=3.9"
+git = "https://github.com/aleximmer/laplace.git"
+ref = "0.2"
+revision = "8076652fddfb177c4f0252f0f1a165b2588d6fce"
 summary = "laplace - Laplace approximations for deep learning"
 groups = ["default"]
 dependencies = [
     "asdfghjkl",
+    "asdl @ git+https://github.com/kazukiosawa/asdl",
     "backpack-for-pytorch",
-    "torch",
+    "curvlinops-for-pytorch @ git+https://github.com/f-dangel/curvlinops",
+    "opt-einsum",
+    "torch>=2.0",
     "torchaudio",
+    "torchmetrics",
     "torchvision",
 ]
+
+[[package]]
+name = "lightning-utilities"
+version = "0.11.5"
+requires_python = ">=3.8"
+summary = "Lightning toolbox for across the our ecosystem."
+groups = ["default"]
+dependencies = [
+    "packaging>=17.1",
+    "setuptools",
+    "typing-extensions",
+]
 files = [
-    {file = "laplace-torch-0.1a2.tar.gz", hash = "sha256:9e9329ad7463eddd3a8c9c0b3647800a8f200886d941ba90a3b664739e4a8500"},
-    {file = "laplace_torch-0.1a2-py3-none-any.whl", hash = "sha256:d4b512f6e423f83514532ef5419cccdee74cd5dfe31d0e8f95cf5f5460cee7a1"},
+    {file = "lightning_utilities-0.11.5-py3-none-any.whl", hash = "sha256:ab2117cc926a9e3757919e25a0da574badb1c0f04fc931849235731b78016a8d"},
+    {file = "lightning_utilities-0.11.5.tar.gz", hash = "sha256:a96bee6d8b3df18b7c1a8dec83b2adb03dca6ca0ce3ae9fd355eb0922c4e5e07"},
 ]
 
 [[package]]
@@ -528,6 +591,17 @@ files = [
 ]
 
 [[package]]
+name = "packaging"
+version = "24.1"
+requires_python = ">=3.8"
+summary = "Core utilities for Python packages"
+groups = ["default"]
+files = [
+    {file = "packaging-24.1-py3-none-any.whl", hash = "sha256:5b8f2217dbdbd2f7f384c41c628544e6d52f2d0f53c6d0c3ea61aa5d1d7ff124"},
+    {file = "packaging-24.1.tar.gz", hash = "sha256:026ed72c8ed3fcce5bf8950572258698927fd1dbda10a5e981cdf0ac37f4f002"},
+]
+
+[[package]]
 name = "pillow"
 version = "10.4.0"
 requires_python = ">=3.8"
@@ -708,6 +782,17 @@ files = [
 ]
 
 [[package]]
+name = "setuptools"
+version = "70.3.0"
+requires_python = ">=3.8"
+summary = "Easily download, build, install, upgrade, and uninstall Python packages"
+groups = ["default"]
+files = [
+    {file = "setuptools-70.3.0-py3-none-any.whl", hash = "sha256:fe384da74336c398e0d956d1cae0669bc02eed936cdb1d49b57de1990dc11ffc"},
+    {file = "setuptools-70.3.0.tar.gz", hash = "sha256:f171bab1dfbc86b132997f26a119f6056a57950d058587841a0082e8830f9dc5"},
+]
+
+[[package]]
 name = "sympy"
 version = "1.13.0"
 requires_python = ">=3.8"
@@ -816,6 +901,23 @@ files = [
     {file = "torchaudio-2.3.1-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:ae22a402fa862f7c3c177916f1b17482641d96b8bec56937e7df10739f3e3947"},
     {file = "torchaudio-2.3.1-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:4e3bca232f820c6a0fa5394424076cc519fae32288e7ff6f6d68bd71794dc354"},
     {file = "torchaudio-2.3.1-cp39-cp39-win_amd64.whl", hash = "sha256:b7e0758b217e397bf2addfdc2df7c21f7dc34641968597a2a7e279c16e7c6d0b"},
+]
+
+[[package]]
+name = "torchmetrics"
+version = "1.4.0.post0"
+requires_python = ">=3.8"
+summary = "PyTorch native Metrics"
+groups = ["default"]
+dependencies = [
+    "lightning-utilities>=0.8.0",
+    "numpy>1.20.0",
+    "packaging>17.1",
+    "torch>=1.10.0",
+]
+files = [
+    {file = "torchmetrics-1.4.0.post0-py3-none-any.whl", hash = "sha256:ab234216598e3fbd8d62ee4541a0e74e7e8fc935d099683af5b8da50f745b3c8"},
+    {file = "torchmetrics-1.4.0.post0.tar.gz", hash = "sha256:ab9bcfe80e65dbabbddb6cecd9be21f1f1d5207bb74051ef95260740f2762358"},
 ]
 
 [[package]]

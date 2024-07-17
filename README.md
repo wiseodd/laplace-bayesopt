@@ -5,16 +5,14 @@
 Install PyTorch first, then:
 
 ```
-pip install git+https://git@github.com/aleximmer/laplace
-pip install git+https://git@github.com/wiseodd/laplace-bayesopt
+pip install laplace-bayesopt
 ```
-
 
 ## Usage
 
 Basic usage
 
-``` python
+```python
 from laplace_bayesopt.botorch import LaplaceBoTorch
 
 def get_net():
@@ -35,14 +33,12 @@ The full arguments of `LaplaceBoTorch` can be found in the class documentation.
 
 Check out a full BoTorch example in `examples/botorch/experiments.py`.
 
-
 ## Useful References
 
-* General Laplace approximation: <https://arxiv.org/abs/2106.14806>
-* Laplace for Bayesian optimization: <https://arxiv.org/abs/2304.08309>
-* Benchmark of neural-net-based Bayesian optimizers: <https://arxiv.org/abs/2305.20028>
-* The case for neural networks for Bayesian optimization: <https://arxiv.org/abs/2104.11667>
-
+- General Laplace approximation: <https://arxiv.org/abs/2106.14806>
+- Laplace for Bayesian optimization: <https://arxiv.org/abs/2304.08309>
+- Benchmark of neural-net-based Bayesian optimizers: <https://arxiv.org/abs/2305.20028>
+- The case for neural networks for Bayesian optimization: <https://arxiv.org/abs/2104.11667>
 
 ## Citation
 
