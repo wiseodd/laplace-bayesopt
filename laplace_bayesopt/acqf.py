@@ -25,9 +25,8 @@ class IndependentThompsonSampling(AnalyticAcquisitionFunction):
     maximize: bool, default = True
         Whether to maximize the acqf f_s or minimize it
 
-    random_state: int, default = 123
-        The random state of the sampling f_s ~ p(f | D). This is to ensure that for any given x,
-        the sample from p(f(x) | D) comes from the same sample posterior sample f_s ~ p(f | D).
+    random_state: int or None, default = None
+        If set, then the stochasticity is only present within batch.
     """
 
     def __init__(
@@ -35,7 +34,7 @@ class IndependentThompsonSampling(AnalyticAcquisitionFunction):
         model: torch.nn.Module,
         posterior_transform: PosteriorTransform | None = None,
         maximize: bool = True,
-        random_state: int = 123,
+        random_state: int | None = None,
     ):
         super().__init__(model, posterior_transform)
         self.maximize = maximize
@@ -60,8 +59,12 @@ class IndependentThompsonSampling(AnalyticAcquisitionFunction):
         if len(std.shape) == 0:
             std = std.unsqueeze(0)
 
-        generator = torch.Generator(device=x.device).manual_seed(self.random_state)
-        eps = torch.randn(1, device=x.device, generator=generator)
+        if self.random_state is not None:
+            generator = torch.Generator(device=x.device).manual_seed(self.random_state)
+        else:
+            generator = None
+
+        eps = torch.randn(*mean.shape, device=x.device, generator=generator)
         f_sample = mean + std * eps
 
         # BoTorch assumes acqf to be maximization
@@ -74,7 +77,7 @@ def discrete_independent_thompson_sampling(
     x_cand: torch.Tensor,
     maximization: bool = True,
     batch_size: int = 128,
-    random_state: int = 123,
+    random_state: int | None = None,
 ):
     """
     Thompson sampling for BoTorch on discrete candidates from the input space.
@@ -98,8 +101,9 @@ def discrete_independent_thompson_sampling(
     batch_size: int
         Batch size for each chunk of x_cand. Useful when num_candidates is large
 
-    random_state: int
-        The same random state used throughout the batches
+    random_state: int or None
+        The same random state used throughout the batches. If set, the stochasticity
+        is only within batch.
 
     Returns:
     --------
@@ -110,7 +114,11 @@ def discrete_independent_thompson_sampling(
         The acquisition function value of x_best.
     """
     dataloader = DataLoader(TensorDataset(x_cand), batch_size=batch_size)
-    generator = torch.Generator(device=x_cand.device).manual_seed(random_state)
+
+    if random_state is not None:
+        generator = torch.Generator(device=x_cand.device).manual_seed(random_state)
+    else:
+        generator = None
 
     best_x, best_fx = None, (-torch.inf if maximization else torch.inf)
     with torch.no_grad():
@@ -120,7 +128,7 @@ def discrete_independent_thompson_sampling(
 
             posterior = model.posterior(x)
             f_mean, f_var = posterior.mean, posterior.variance
-            eps = torch.randn(1, device=x_cand.device, generator=generator)
+            eps = torch.randn(*f_mean.shape, device=x_cand.device, generator=generator)
             f_sample = (f_mean + f_var.sqrt() * eps).flatten()
 
             if maximization:
