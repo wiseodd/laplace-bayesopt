@@ -1,6 +1,6 @@
 [project]
 name = "laplace-bayesopt"
-version = "0.1.2"
+version = "0.1.3"
 description = "Bayesian optimization interface for the laplace-torch library"
 authors = [
     {name = "Agustinus Kristiadi", email = "agustinus@kristia.de"},

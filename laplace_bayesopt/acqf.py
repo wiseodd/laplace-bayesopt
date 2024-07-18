@@ -61,7 +61,7 @@ class IndependentThompsonSampling(AnalyticAcquisitionFunction):
             std = std.unsqueeze(0)
 
         generator = torch.Generator(device=x.device).manual_seed(self.random_state)
-        eps = torch.randn(*std.shape, device=x.device, generator=generator)
+        eps = torch.randn(1, device=x.device, generator=generator)
         f_sample = mean + std * eps
 
         # BoTorch assumes acqf to be maximization
@@ -120,7 +120,7 @@ def discrete_independent_thompson_sampling(
 
             posterior = model.posterior(x)
             f_mean, f_var = posterior.mean, posterior.variance
-            eps = torch.randn(*f_var.shape, device=x_cand.device, generator=generator)
+            eps = torch.randn(1, device=x_cand.device, generator=generator)
             f_sample = (f_mean + f_var.sqrt() * eps).flatten()
 
             if maximization:

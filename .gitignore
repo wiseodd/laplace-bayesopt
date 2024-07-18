@@ -446,3 +446,4 @@ figs/
 examples/olympus/*.sh
 examples/olympus/results/
 examples/olympus/plot.py
+.pdm-python
