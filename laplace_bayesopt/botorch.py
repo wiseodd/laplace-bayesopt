@@ -1,7 +1,4 @@
 from __future__ import annotations
-import warnings
-
-warnings.filterwarnings("ignore")
 import torch
 from torch import nn, optim
 import torch.utils.data as data_utils
@@ -9,15 +6,16 @@ import torch.utils.data as data_utils
 from gpytorch import distributions as gdists
 
 import botorch.models.model as botorch_model
+from botorch.posteriors import Posterior
 from botorch.posteriors.gpytorch import GPyTorchPosterior
 from botorch.models.transforms.input import InputTransform
 from botorch.models.transforms.outcome import OutcomeTransform
 
-from laplace import Laplace
+from laplace import BaseLaplace, Laplace
 from laplace.curvature import CurvlinopsGGN, CurvatureInterface
 from laplace.marglik_training import marglik_training
 
-from typing import *
+from typing import Optional, Callable, List, Type
 import math
 
 
@@ -102,7 +100,7 @@ class LaplaceBoTorch(botorch_model.Model):
         train_Y: torch.Tensor,
         input_transform: Optional[InputTransform] = None,
         outcome_transform: Optional[OutcomeTransform] = None,
-        bnn: Laplace = None,
+        bnn: Optional[BaseLaplace] = None,
         likelihood: str = "regression",
         noise_var: Optional[float] = None,
         last_layer: bool = False,
@@ -114,7 +112,7 @@ class LaplaceBoTorch(botorch_model.Model):
         n_epochs: int = 1000,
         lr: float = 1e-1,
         wd: float = 1e-3,
-        backend: CurvatureInterface = CurvlinopsGGN,
+        backend: Type[CurvatureInterface] = CurvlinopsGGN,
         device: str = "cpu",
         enable_backprop: bool = True,
     ):
@@ -157,9 +155,9 @@ class LaplaceBoTorch(botorch_model.Model):
         self.bnn = bnn
         self.enable_backprop = enable_backprop
 
-        if type(noise_var) != float and noise_var is not None:
+        if noise_var is float and noise_var is not None:
             raise ValueError("Noise variance must be float >= 0. or None")
-        if type(noise_var) == float and noise_var < 0:
+        if noise_var is float and noise_var < 0:
             raise ValueError("Noise variance must be >= 0.")
         self.noise_var = noise_var
 
@@ -173,8 +171,11 @@ class LaplaceBoTorch(botorch_model.Model):
         output_indices: Optional[List[int]] = None,
         observation_noise: bool = False,
         posterior_transform=None,
-        **kwargs: Any,
-    ) -> GPyTorchPosterior:
+        **kwargs,
+    ) -> Posterior:
+        if self.bnn is None:
+            raise ValueError("The surrogate has not been trained!")
+
         # Notation:
         # ---------
         # B is the batch size
@@ -210,17 +211,20 @@ class LaplaceBoTorch(botorch_model.Model):
         dist = gdists.MultivariateNormal(mean_y, covariance_matrix=cov_y)
         post_pred = GPyTorchPosterior(dist)
 
+        if hasattr(self, "outcome_transform"):
+            post_pred = self.outcome_transform.untransform_posterior(post_pred)
+
         if posterior_transform is not None:
-            return posterior_transform(post_pred)
+            post_pred = posterior_transform(post_pred)
 
         return post_pred
 
     def condition_on_observations(
-        self, new_X: torch.Tensor, new_Y: torch.Tensor, **kwargs: Any
+        self, X: torch.Tensor, Y: torch.Tensor, **kwargs
     ) -> LaplaceBoTorch:
         # Append new observation to the current untrasformed data
-        train_X = torch.cat([self.orig_train_X, new_X], dim=0)
-        train_Y = torch.cat([self.orig_train_Y, new_Y], dim=0)
+        train_X = torch.cat([self.orig_train_X, X], dim=0)
+        train_Y = torch.cat([self.orig_train_Y, Y], dim=0)
 
         return LaplaceBoTorch(
             # Replace the dataset & retrained BNN
