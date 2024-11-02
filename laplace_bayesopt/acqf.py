@@ -1,8 +1,9 @@
 from __future__ import annotations
-from botorch.acquisition.objective import PosteriorTransform
+
 import torch
-from torch.utils.data import DataLoader, TensorDataset
 from botorch.acquisition.analytic import AnalyticAcquisitionFunction
+from botorch.acquisition.objective import PosteriorTransform
+from torch.utils.data import DataLoader, TensorDataset
 
 
 class IndependentThompsonSampling(AnalyticAcquisitionFunction):

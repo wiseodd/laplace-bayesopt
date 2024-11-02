@@ -5,7 +5,7 @@
 Install PyTorch first, then:
 
 ```
-pip install laplace-bayesopt
+pip install --upgrade laplace-bayesopt
 ```
 
 ## Usage

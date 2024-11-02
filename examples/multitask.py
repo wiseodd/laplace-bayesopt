@@ -3,24 +3,22 @@ Following https://botorch.org/tutorials/composite_mtbo
 """
 
 from __future__ import annotations
+
 import warnings
 
 warnings.filterwarnings("ignore")
 
-from botorch.acquisition.logei import qLogExpectedImprovement
-from botorch.acquisition import GenericMCObjective
-from botorch.sampling import IIDNormalSampler
 import numpy as np
 import torch
-from torch import nn
 import tqdm
-
-
-from botorch.test_functions import Hartmann
+from botorch.acquisition import GenericMCObjective
+from botorch.acquisition.logei import qLogExpectedImprovement
 from botorch.optim.optimize import optimize_acqf
+from botorch.sampling import IIDNormalSampler
+from botorch.test_functions import Hartmann
+from torch import nn
 
 from laplace_bayesopt.botorch import LaplaceBoTorch
-
 
 np.random.seed(10)
 torch.set_default_dtype(torch.float64)

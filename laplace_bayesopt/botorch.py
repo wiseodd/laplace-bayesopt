@@ -1,22 +1,20 @@
 from __future__ import annotations
-import torch
-from torch import nn, optim
-import torch.utils.data as data_utils
 
-from gpytorch import distributions as gdists
+import math
+from typing import Callable, List, Optional, Type
 
 import botorch.models.model as botorch_model
-from botorch.posteriors import Posterior
-from botorch.posteriors.gpytorch import GPyTorchPosterior
+import torch
+import torch.utils.data as data_utils
 from botorch.models.transforms.input import InputTransform
 from botorch.models.transforms.outcome import OutcomeTransform
-
+from botorch.posteriors import Posterior
+from botorch.posteriors.gpytorch import GPyTorchPosterior
+from gpytorch import distributions as gdists
 from laplace import BaseLaplace, Laplace
-from laplace.curvature import CurvlinopsGGN, CurvatureInterface
+from laplace.curvature import CurvatureInterface, CurvlinopsGGN
 from laplace.marglik_training import marglik_training
-
-from typing import Optional, Callable, List, Type
-import math
+from torch import nn, optim
 
 
 class LaplaceBoTorch(botorch_model.Model):
