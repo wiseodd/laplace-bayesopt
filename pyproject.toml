@@ -1,18 +1,13 @@
 [project]
 name = "laplace-bayesopt"
-version = "0.1.5"
+version = "0.1.6"
 description = "Bayesian optimization interface for the laplace-torch library"
 authors = [{ name = "Agustinus Kristiadi", email = "agustinus@kristia.de" }]
 dependencies = [
-    "asdfghjkl",
-    "backpack-for-pytorch",
-    "botorch",
-    "gpytorch",
-    "laplace-torch",
-    "opt_einsum",
-    "torch",
-    "torchaudio",
-    "torchvision",
+    "torch>=2.0",
+    "laplace-torch>=0.2.1",
+    "botorch>=0.10.0",
+    "pandas>=2.2.2",
 ]
 requires-python = ">=3.9"
 readme = "README.md"
