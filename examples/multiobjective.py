@@ -38,7 +38,7 @@ torch.set_default_dtype(torch.float64)
 NOISE_SE = torch.tensor([15.19, 0.63])
 BATCH_SIZE = 4
 NUM_RESTARTS = 10
-RAW_SAMPLES = 512
+RAW_SAMPLES = 20
 
 problem = BraninCurrin(negate=True)
 
@@ -117,9 +117,10 @@ for i in pbar:
     candidates, _ = optimize_acqf(
         acq_function=acq_func,
         bounds=standard_bounds,
-        q=3,
-        num_restarts=4,
-        raw_samples=5,
+        q=BATCH_SIZE,
+        num_restarts=NUM_RESTARTS,
+        raw_samples=RAW_SAMPLES,
+        options={"batch_limit": 5, "maxiter": 200},
         sequential=True,
     )
 
