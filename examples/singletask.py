@@ -7,18 +7,15 @@ warnings.filterwarnings("ignore")
 
 import numpy as np
 import torch
-from torch import nn
-from torch import distributions as dists
-from torch.nn import functional as F
 import tqdm
-
-
-from botorch.test_functions import Branin
 from botorch.acquisition.analytic import ExpectedImprovement
 from botorch.optim.optimize import optimize_acqf
+from botorch.test_functions import Branin
+from torch import distributions as dists
+from torch import nn
+from torch.nn import functional as F
 
 from laplace_bayesopt.botorch import LaplaceBoTorch
-
 
 np.random.seed(1)
 torch.set_default_dtype(torch.float64)
