@@ -1,3 +1,4 @@
+from gpytorch.distributions import MultitaskMultivariateNormal, MultivariateNormal
 import pytest
 import torch
 from torch import nn
@@ -47,6 +48,7 @@ def test_posterior_singletask(net_singletask, reg_data_singletask):
     B, Q, D, K = 15, 4, train_X.shape[-1], 1
     post = model.posterior(torch.randn(B, Q, D))
 
+    assert isinstance(post.mvn, MultivariateNormal)
     assert post.mean.shape == (B, Q * K, 1)  # Quirk of GPyTorch
     assert post.covariance_matrix.shape == (B, Q * K, Q * K)
 
@@ -60,7 +62,8 @@ def test_posterior_multitask(net_multitask, reg_data_multitask):
     B, Q, D, K = 15, 4, train_X.shape[-1], train_Y.shape[-1]
     post = model.posterior(torch.randn(B, Q, D))
 
-    assert post.mean.shape == (B, Q * K, 1)  # Quirk of GPyTorch
+    assert isinstance(post.mvn, MultitaskMultivariateNormal)
+    assert post.mean.shape == (B, Q, K)
     assert post.covariance_matrix.shape == (B, Q * K, Q * K)
 
 

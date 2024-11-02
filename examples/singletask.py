@@ -1,4 +1,10 @@
 from __future__ import annotations
+
+import warnings
+
+warnings.filterwarnings("ignore")
+
+
 import numpy as np
 import torch
 from torch import nn
@@ -52,7 +58,7 @@ model = LaplaceBoTorch(get_net, train_x, train_y)
 
 
 def evaluate_model(model):
-    pred, _ = model.get_prediction(test_x, use_test_loader=True, joint=False)
+    pred, _ = model._get_prediction(test_x, use_test_loader=True, joint=False)
     return F.mse_loss(pred, test_y).squeeze().item()
 
 

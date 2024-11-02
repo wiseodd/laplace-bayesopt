@@ -5,8 +5,6 @@
 Install PyTorch first, then:
 
 ```
-pip install --upgrade pip wheel packaging
-pip install git+https://github.com/aleximmer/laplace.git@0.2
 pip install laplace-bayesopt
 ```
 
@@ -28,12 +26,12 @@ train_X, train_Y = ..., ...
 
 model = LaplaceBoTorch(get_net, train_X, train_Y)
 
-# Use this model in your existing BoTorch loop, e.g. to replace BoTorch's MultiTaskGP model.
+# Use this model in your existing BoTorch loop, e.g. to replace BoTorch's SingleTaskGP model.
 ```
 
 The full arguments of `LaplaceBoTorch` can be found in the class documentation.
 
-Check out a full BoTorch example in `examples/botorch/experiments.py`.
+Check out examples in `examples/`.
 
 ## Useful References
 

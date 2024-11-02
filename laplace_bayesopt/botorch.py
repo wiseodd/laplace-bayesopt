@@ -208,7 +208,13 @@ class LaplaceBoTorch(botorch_model.Model):
         cov_y = torch.einsum("bqkbrl->bqkrl", cov_y)  # (B, Q, K, Q, K)
         cov_y = cov_y.reshape(B, Q * K, Q * K)
 
-        dist = gdists.MultivariateNormal(mean_y, covariance_matrix=cov_y)
+        if K > 1:
+            dist = gdists.MultitaskMultivariateNormal(
+                mean_y.reshape(B, Q, K), covariance_matrix=cov_y
+            )
+        else:
+            dist = gdists.MultivariateNormal(mean_y, covariance_matrix=cov_y)
+
         post_pred = GPyTorchPosterior(dist)
 
         if hasattr(self, "outcome_transform"):
