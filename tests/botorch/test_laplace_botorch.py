@@ -1,5 +1,8 @@
 import pytest
 import torch
+from botorch.acquisition.objective import ScalarizedPosteriorTransform
+from botorch.models.transforms.input import Normalize
+from botorch.models.transforms.outcome import Standardize
 from gpytorch.distributions import MultitaskMultivariateNormal, MultivariateNormal
 from torch import nn
 
@@ -105,3 +108,56 @@ def test_get_prediction(net_multitask, reg_data_multitask):
     )
     assert Y_mean.shape == (B * K,)
     assert Y_var.shape == (B * K, B * K)
+
+
+def test_input_transform(net_singletask, reg_data_singletask):
+    train_X, train_Y = reg_data_singletask
+
+    model = LaplaceBoTorch(
+        lambda: net_singletask, train_X, train_Y, input_transform=None
+    )
+    assert torch.allclose(model.train_X, train_X)
+
+    input_transform = Normalize(d=train_X.shape[-1])
+    model = LaplaceBoTorch(
+        lambda: net_singletask,
+        train_X,
+        train_Y,
+        input_transform=input_transform,
+    )
+    input_transform.eval()
+    assert torch.allclose(model.train_X, input_transform(train_X))
+
+
+def test_outcome_transform(net_singletask, reg_data_singletask):
+    train_X, train_Y = reg_data_singletask
+
+    model = LaplaceBoTorch(
+        lambda: net_singletask, train_X, train_Y, outcome_transform=None
+    )
+    assert torch.allclose(model.train_Y, train_Y)
+
+    outcome_transform = Standardize(m=train_Y.shape[-1])
+    model = LaplaceBoTorch(
+        lambda: net_singletask,
+        train_X,
+        train_Y,
+        outcome_transform=outcome_transform,
+    )
+    outcome_transform.eval()
+    assert torch.allclose(model.train_Y, outcome_transform(train_Y)[0])
+
+
+def test_posterior_transform(net_multitask, reg_data_multitask):
+    train_X, train_Y = reg_data_multitask
+
+    model = LaplaceBoTorch(lambda: net_multitask, train_X, train_Y)
+    mvn1 = model.posterior(train_X, posterior_transform=None).mvn
+    mvn2 = model.posterior(
+        train_X,
+        posterior_transform=ScalarizedPosteriorTransform(
+            weights=torch.ones_like(train_Y[0])
+        ),
+    ).mvn
+
+    assert mvn1.mean.shape != mvn2.mean.shape
