@@ -6,7 +6,6 @@ from typing import Callable, List, Optional, Type
 import botorch.models.model as botorch_model
 import torch
 import torch.utils.data as data_utils
-from botorch.models.transforms.input import InputTransform
 from botorch.models.transforms.outcome import OutcomeTransform
 from botorch.posteriors import Posterior
 from botorch.posteriors.gpytorch import GPyTorchPosterior
@@ -15,6 +14,7 @@ from laplace import BaseLaplace, Laplace
 from laplace.curvature import CurvatureInterface, CurvlinopsGGN
 from laplace.marglik_training import marglik_training
 from torch import nn, optim
+from torch.nn import Module
 
 
 class LaplaceBoTorch(botorch_model.Model):
@@ -96,7 +96,7 @@ class LaplaceBoTorch(botorch_model.Model):
         get_net: Callable[[], nn.Module],
         train_X: torch.Tensor,
         train_Y: torch.Tensor,
-        input_transform: Optional[InputTransform] = None,
+        input_transform: Optional[Module] = None,
         outcome_transform: Optional[OutcomeTransform] = None,
         bnn: Optional[BaseLaplace] = None,
         likelihood: str = "regression",
@@ -119,10 +119,11 @@ class LaplaceBoTorch(botorch_model.Model):
         self.orig_train_X = train_X
         self.orig_train_Y = train_Y
 
-        self.train_X = self.transform_inputs(train_X)
         if input_transform is not None:
+            self.train_X = self.transform_inputs(train_X, input_transform)
             self.input_transform = input_transform
-            self.input_transform.eval()
+        else:
+            self.train_X = train_X
 
         if outcome_transform is not None:
             transformed_Y, _ = outcome_transform(train_Y)
