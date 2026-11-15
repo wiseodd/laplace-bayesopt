@@ -9,7 +9,7 @@ from torch import nn
 from laplace_bayesopt.botorch import LaplaceBoTorch
 
 torch.manual_seed(9999)
-torch.set_default_tensor_type(torch.DoubleTensor)
+torch.set_default_dtype(torch.float64)
 
 
 @pytest.fixture
@@ -161,3 +161,40 @@ def test_posterior_transform(net_multitask, reg_data_multitask):
     ).mvn
 
     assert mvn1.mean.shape != mvn2.mean.shape
+
+
+@pytest.mark.parametrize("marglik_mode", ["posthoc", "online"])
+def test_posterior_backprop(net_singletask, reg_data_singletask, marglik_mode):
+    train_X, train_Y = reg_data_singletask
+    model = LaplaceBoTorch(
+        lambda: net_singletask, train_X, train_Y, marglik_mode=marglik_mode
+    )
+
+    # Backprop through the posterior twice, as done by acqf optimizers
+    for _ in range(2):
+        X = torch.randn(15, 4, train_X.shape[-1], requires_grad=True)
+        post = model.posterior(X)
+        (post.mean.sum() + post.variance.sum()).backward()
+
+        assert X.grad is not None
+        assert torch.isfinite(X.grad).all()
+
+
+@pytest.mark.parametrize("noise_var", [-1.0, 0.0])
+def test_nonpositive_noise_var(net_singletask, reg_data_singletask, noise_var):
+    train_X, train_Y = reg_data_singletask
+    with pytest.raises(ValueError):
+        LaplaceBoTorch(lambda: net_singletask, train_X, train_Y, noise_var=noise_var)
+
+
+def test_condition_on_observations_keeps_enable_backprop(
+    net_singletask, reg_data_singletask
+):
+    train_X, train_Y = reg_data_singletask
+    model = LaplaceBoTorch(
+        lambda: net_singletask, train_X, train_Y, enable_backprop=False, n_epochs=10
+    )
+    new_model = model.condition_on_observations(train_X[:1], train_Y[:1])
+
+    assert new_model.enable_backprop is False
+    assert new_model.bnn.enable_backprop is False

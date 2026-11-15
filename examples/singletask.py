@@ -8,7 +8,7 @@ warnings.filterwarnings("ignore")
 import numpy as np
 import torch
 import tqdm
-from botorch.acquisition.analytic import ExpectedImprovement
+from botorch.acquisition.analytic import LogExpectedImprovement
 from botorch.optim.optimize import optimize_acqf
 from botorch.test_functions import Branin
 from torch import distributions as dists
@@ -65,7 +65,7 @@ pbar = tqdm.trange(100)
 pbar.set_description(f"[MSE = {evaluate_model(model):.3f}; Best f(x) = {best_y:.3f}]")
 
 for i in pbar:
-    acq_f = ExpectedImprovement(model, best_f=best_y, maximize=False)
+    acq_f = LogExpectedImprovement(model, best_f=best_y, maximize=False)
 
     # Get a proposal for new x
     new_x, val = optimize_acqf(
