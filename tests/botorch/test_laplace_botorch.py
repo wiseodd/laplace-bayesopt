@@ -180,10 +180,11 @@ def test_posterior_backprop(net_singletask, reg_data_singletask, marglik_mode):
         assert torch.isfinite(X.grad).all()
 
 
-def test_negative_noise_var(net_singletask, reg_data_singletask):
+@pytest.mark.parametrize("noise_var", [-1.0, 0.0])
+def test_nonpositive_noise_var(net_singletask, reg_data_singletask, noise_var):
     train_X, train_Y = reg_data_singletask
     with pytest.raises(ValueError):
-        LaplaceBoTorch(lambda: net_singletask, train_X, train_Y, noise_var=-1.0)
+        LaplaceBoTorch(lambda: net_singletask, train_X, train_Y, noise_var=noise_var)
 
 
 def test_condition_on_observations_keeps_enable_backprop(

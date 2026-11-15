@@ -5,6 +5,9 @@ on:
   push:
     branches: [master]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -14,4 +17,4 @@ jobs:
       - name: Build sdist and wheel
         run: uv build
       - name: Smoke-test the wheel
-        run: uv run --isolated --no-project --with dist/*.whl python -c "import laplace_bayesopt.botorch, laplace_bayesopt.acqf"
+        run: uv run --isolated --no-project --with dist/*.whl python -I -c "import laplace_bayesopt.botorch, laplace_bayesopt.acqf"

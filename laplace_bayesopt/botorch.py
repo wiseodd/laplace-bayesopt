@@ -51,7 +51,7 @@ class LaplaceBoTorch(botorch_model.Model):
         Indicates whether the problem is regression or classification.
 
     noise_var : float | None, default=None.
-        Output noise variance. If float, must be >= 0. If None,
+        Output noise variance. If float, must be > 0. If None,
         it is learned by marginal likelihood automatically.
 
     last_layer : bool, default False
@@ -155,8 +155,9 @@ class LaplaceBoTorch(botorch_model.Model):
         self.bnn = bnn
         self.enable_backprop = enable_backprop
 
-        if noise_var is not None and noise_var < 0:
-            raise ValueError("Noise variance must be >= 0. or None")
+        # Laplace scales the curvature by 1 / noise_var, so zero noise breaks the fit
+        if noise_var is not None and noise_var <= 0:
+            raise ValueError("Noise variance must be > 0 or None")
         self.noise_var = noise_var
 
         # Initialize Laplace
