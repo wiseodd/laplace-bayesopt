@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import math
-from typing import Callable, List, Optional, Type
+from collections.abc import Callable
 
 import botorch.models.model as botorch_model
 import torch
 import torch.utils.data as data_utils
+from botorch.acquisition.objective import PosteriorTransform
 from botorch.models.transforms.outcome import OutcomeTransform
 from botorch.posteriors import Posterior
 from botorch.posteriors.gpytorch import GPyTorchPosterior
@@ -96,11 +97,11 @@ class LaplaceBoTorch(botorch_model.Model):
         get_net: Callable[[], nn.Module],
         train_X: torch.Tensor,
         train_Y: torch.Tensor,
-        input_transform: Optional[Module] = None,
-        outcome_transform: Optional[OutcomeTransform] = None,
-        bnn: Optional[BaseLaplace] = None,
+        input_transform: Module | None = None,
+        outcome_transform: OutcomeTransform | None = None,
+        bnn: BaseLaplace | None = None,
         likelihood: str = "regression",
-        noise_var: Optional[float] = None,
+        noise_var: float | None = None,
         last_layer: bool = False,
         hess_factorization: str = "kron",
         marglik_mode: str = "posthoc",
@@ -110,7 +111,7 @@ class LaplaceBoTorch(botorch_model.Model):
         n_epochs: int = 1000,
         lr: float = 1e-1,
         wd: float = 1e-3,
-        backend: Type[CurvatureInterface] = CurvlinopsGGN,
+        backend: type[CurvatureInterface] = CurvlinopsGGN,
         device: str = "cpu",
         enable_backprop: bool = True,
     ):
@@ -154,10 +155,8 @@ class LaplaceBoTorch(botorch_model.Model):
         self.bnn = bnn
         self.enable_backprop = enable_backprop
 
-        if noise_var is float and noise_var is not None:
-            raise ValueError("Noise variance must be float >= 0. or None")
-        if noise_var is float and noise_var < 0:
-            raise ValueError("Noise variance must be >= 0.")
+        if noise_var is not None and noise_var < 0:
+            raise ValueError("Noise variance must be >= 0. or None")
         self.noise_var = noise_var
 
         # Initialize Laplace
@@ -167,9 +166,9 @@ class LaplaceBoTorch(botorch_model.Model):
     def posterior(
         self,
         X: torch.Tensor,
-        output_indices: Optional[List[int]] = None,
-        observation_noise: bool = False,
-        posterior_transform=None,
+        output_indices: list[int] | None = None,
+        observation_noise: bool | torch.Tensor = False,
+        posterior_transform: PosteriorTransform | None = None,
         **kwargs,
     ) -> Posterior:
         if self.bnn is None:
@@ -214,7 +213,7 @@ class LaplaceBoTorch(botorch_model.Model):
         else:
             dist = gdists.MultivariateNormal(mean_y, covariance_matrix=cov_y)
 
-        post_pred = GPyTorchPosterior(dist)
+        post_pred: Posterior = GPyTorchPosterior(dist)
 
         if hasattr(self, "outcome_transform"):
             post_pred = self.outcome_transform.untransform_posterior(post_pred)
@@ -252,6 +251,7 @@ class LaplaceBoTorch(botorch_model.Model):
             wd=self.wd,
             backend=self.backend,
             device=self.device,
+            enable_backprop=self.enable_backprop,
         )
 
     def _get_prediction(self, test_X: torch.Tensor, joint=True, use_test_loader=False):
@@ -381,6 +381,12 @@ class LaplaceBoTorch(botorch_model.Model):
                 )
                 neg_marglik.backward()
                 hyper_optimizer.step()
+
+            # Store the tuned values without the hyperparameter graph, which was
+            # freed by `backward()`. Otherwise, backprop through the posterior
+            # (e.g. when optimizing the acquisition function) fails.
+            self.bnn.prior_precision = log_prior.detach().exp()
+            self.bnn.sigma_noise = log_sigma.detach().exp()
 
     def _get_train_loader(self):
         return data_utils.DataLoader(

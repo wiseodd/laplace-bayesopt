@@ -12,8 +12,8 @@ warnings.filterwarnings("ignore")
 import numpy as np
 import torch
 import tqdm
-from botorch.acquisition.multi_objective.monte_carlo import (
-    qExpectedHypervolumeImprovement,
+from botorch.acquisition.multi_objective.logei import (
+    qLogExpectedHypervolumeImprovement,
 )
 from botorch.models.transforms.outcome import Standardize
 from botorch.optim.optimize import optimize_acqf
@@ -106,7 +106,7 @@ for i in pbar:
         ref_point=problem.ref_point,
         Y=pred,
     )
-    acq_func = qExpectedHypervolumeImprovement(
+    acq_func = qLogExpectedHypervolumeImprovement(
         model=model,
         ref_point=problem.ref_point,
         partitioning=partitioning,

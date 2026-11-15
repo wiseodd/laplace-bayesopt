@@ -47,7 +47,9 @@ class ContextualHartmann6(Hartmann):
             ),
             dim=-1,
         )
-        return super().evaluate_true(concatenated_X)
+        # Skip the parent's input validation: `bounds` is for the 5-dim input,
+        # while `concatenated_X` also holds the task dim.
+        return super()._evaluate_true(concatenated_X)
 
 
 NUM_TASKS = 3
@@ -84,7 +86,7 @@ best_objective = objective(train_y).max()
 pbar = tqdm.trange(100)
 pbar.set_description(f"[Best objective = {best_objective:.3f}]")
 
-# For qEI
+# For qLogEI
 NUM_SAMPLES = 4
 
 for i in pbar:

@@ -3,6 +3,7 @@ from __future__ import annotations
 import torch
 from botorch.acquisition.analytic import AnalyticAcquisitionFunction
 from botorch.acquisition.objective import PosteriorTransform
+from botorch.models.model import Model
 from torch.utils.data import DataLoader, TensorDataset
 
 
@@ -32,7 +33,7 @@ class IndependentThompsonSampling(AnalyticAcquisitionFunction):
 
     def __init__(
         self,
-        model: torch.nn.Module,
+        model: Model,
         posterior_transform: PosteriorTransform | None = None,
         maximize: bool = True,
         random_state: int | None = None,
@@ -54,6 +55,7 @@ class IndependentThompsonSampling(AnalyticAcquisitionFunction):
             Shape (n,)
         """
         mean, std = self._mean_and_sigma(x)
+        assert std is not None
 
         if len(mean.shape) == 0:
             mean = mean.unsqueeze(0)
@@ -74,7 +76,7 @@ class IndependentThompsonSampling(AnalyticAcquisitionFunction):
 
 
 def discrete_independent_thompson_sampling(
-    model: torch.nn.Module,
+    model: Model,
     x_cand: torch.Tensor,
     maximization: bool = True,
     batch_size: int = 128,
@@ -121,14 +123,16 @@ def discrete_independent_thompson_sampling(
     else:
         generator = None
 
-    best_x, best_fx = None, (-torch.inf if maximization else torch.inf)
+    best_x: torch.Tensor | None = None
+    best_fx: float | torch.Tensor = -torch.inf if maximization else torch.inf
     with torch.no_grad():
         for (x,) in dataloader:
             if len(x.shape) == 2:
                 x = x.unsqueeze(1)  # Add the BoTorch's q-dimension
 
             posterior = model.posterior(x)
-            f_mean, f_var = posterior.mean, posterior.variance
+            # Concrete posteriors define these, the base `Posterior` class does not
+            f_mean, f_var = posterior.mean, posterior.variance  # type: ignore[attr-defined]
             eps = torch.randn(*f_mean.shape, device=x_cand.device, generator=generator)
             f_sample = (f_mean + f_var.sqrt() * eps).flatten()
 

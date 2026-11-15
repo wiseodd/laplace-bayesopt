@@ -15,11 +15,11 @@ Basic usage
 ```python
 from laplace_bayesopt.botorch import LaplaceBoTorch
 
+
 def get_net():
     # Return a *freshly-initialized* PyTorch model
-    return torch.nn.Sequential(
-        ...
-    )
+    return torch.nn.Sequential(...)
+
 
 # Initial X, Y pairs, e.g. obtained via random search
 train_X, train_Y = ..., ...
