@@ -6,8 +6,11 @@ ruff:
 	@uv run ruff check --fix
 
 mypy:
-	uv run mypy --config-file mypy.ini src
+	uv run mypy laplace_bayesopt
 
 lint:
 	make ruff
 	make mypy
+
+build:
+	uv build

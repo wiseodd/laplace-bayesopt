@@ -1,12 +1,16 @@
 name: ruff-format
 
-on: pull_request
+on:
+  pull_request:
+  push:
+    branches: [master]
 
 jobs:
   ruff-format:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: chartboost/ruff-action@v1
+      - uses: actions/checkout@v7
+      - uses: astral-sh/ruff-action@v4
         with:
+          version-file: uv.lock
           args: "format --check"
